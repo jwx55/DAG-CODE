@@ -1,30 +1,24 @@
-# JWXLAND features
+# Codedag Features
 
-*Automatically synced with your [v0.dev](https://v0.dev) deployments*
+**Codedag** is a modern web project built using [v0.dev](https://v0.dev) with direct deployment on [Vercel](https://vercel.com).
 
-[![Deployed on Vercel](https://img.shields.io/badge/Deployed%20on-Vercel-black?style=for-the-badge&logo=vercel)](https://vercel.com/bukmaly1-gmailcoms-projects/v0-jwxland-features)
-[![Built with v0](https://img.shields.io/badge/Built%20with-v0.dev-black?style=for-the-badge)](https://v0.dev/chat/projects/2Z8d3zILr5X)
+## Features:
 
-## Overview
+- Clean and responsive UI design.
+- Live and instant deployment via Vercel.
+- Full control over page structure and layout using v0.dev.
+- Fast performance and optimized loading speed.
+- Smooth interface updates without manual code uploads.
+- Supports mobile, tablet, and desktop screens.
+- Option to export the full project code for external editing.
+- Minimalist and user-friendly interface.
 
-This repository will stay in sync with your deployed chats on [v0.dev](https://v0.dev).
-Any changes you make to your deployed app will be automatically pushed to this repository from [v0.dev](https://v0.dev).
+## Usage:
 
-## Deployment
+- Design and edit your project directly from the v0.dev editor.
+- Deploy updates instantly by clicking **Deploy to Vercel**.
+- Preview and manage the live version on your Vercel dashboard.
 
-Your project is live at:
+## Live Site:
 
-**[https://vercel.com/bukmaly1-gmailcoms-projects/v0-jwxland-features](https://vercel.com/bukmaly1-gmailcoms-projects/v0-jwxland-features)**
-
-## Build your app
-
-Continue building your app on:
-
-**[https://v0.dev/chat/projects/2Z8d3zILr5X](https://v0.dev/chat/projects/2Z8d3zILr5X)**
-
-## How It Works
-
-1. Create and modify your project using [v0.dev](https://v0.dev)
-2. Deploy your chats from the v0 interface
-3. Changes are automatically pushed to this repository
-4. Vercel deploys the latest version from this repository
+[https://codedag.vercel.app/](https://codedag.vercel.app/)
