@@ -29,6 +29,9 @@ import {
   Settings,
   Info,
   X,
+  Github,
+  Instagram,
+  Pencil,
 } from "lucide-react"
 import { toast } from "@/components/ui/use-toast"
 import { Label } from "@/components/ui/label"
@@ -2407,4 +2410,260 @@ ${jsCode}
     <script>${jsCode}</script>
   </body>
 </html>
-              `}\
+  `}
+/>
+\`\`\`
+
+      </div>
+
+      {/* Login Sheet */}
+      <Sheet open={isLoginOpen} onOpenChange={setIsLoginOpen}>
+        <SheetContent
+          side={language === "ar" ? "left" : "right"}
+          className="border-zinc-800"
+          style={{
+            backgroundColor: dynamicStyles.background,
+            color: dynamicStyles.text,
+            borderColor: `${dynamicStyles.text}20`,
+          }}
+        >
+          <SheetHeader>
+            <SheetTitle style={{ color: dynamicStyles.text }}>
+              <MixedText text={user.loggedIn ? t.editProfile || "Edit Profile" : t.login || "Login"} />
+            </SheetTitle>
+          </SheetHeader>
+          <div className="space-y-4 mt-6">
+            <div className="flex flex-col items-center mb-6">
+              <div className="relative mb-4">
+                <img
+                  src={user.image || "/placeholder.svg?height=80&width=80"}
+                  alt={user.name}
+                  className="w-20 h-20 rounded-full object-cover"
+                />
+                <Button
+                  variant="outline"
+                  size="icon"
+                  className="absolute bottom-0 right-0 h-6 w-6 rounded-full"
+                  onClick={() => setIsAvatarSelectorOpen(true)}
+                  style={{ borderColor: `${dynamicStyles.text}20`, color: dynamicStyles.text }}
+                >
+                  <Pencil className="h-3 w-3" />
+                </Button>
+              </div>
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="username" style={{ color: dynamicStyles.text }}>
+                <MixedText text={t.username || "Username"} />
+              </Label>
+              <Input
+                id="username"
+                value={user.name}
+                onChange={(e) => updateUser({ name: e.target.value })}
+                style={{
+                  backgroundColor: `${dynamicStyles.text}10`,
+                  borderColor: `${dynamicStyles.text}20`,
+                  color: dynamicStyles.text,
+                }}
+              />
+            </div>
+
+            <Button
+              className="w-full mt-4"
+              onClick={() => {
+                if (!user.loggedIn) {
+                  updateUser({ loggedIn: true })
+                  toast({
+                    title: t.loginSuccess || "Login successful",
+                    duration: 3000,
+                  })
+                } else {
+                  toast({
+                    title: t.profileUpdated || "Profile updated",
+                    duration: 3000,
+                  })
+                }
+                setIsLoginOpen(false)
+              }}
+              style={{
+                backgroundColor: dynamicStyles.primary,
+                color: "#ffffff",
+              }}
+            >
+              <MixedText text={user.loggedIn ? t.saveChanges || "Save Changes" : t.login || "Login"} />
+            </Button>
+
+            {user.loggedIn && (
+              <Button
+                variant="outline"
+                className="w-full"
+                onClick={() => {
+                  updateUser({ loggedIn: false, name: "Guest" })
+                  toast({
+                    title: t.logoutSuccess || "Logged out successfully",
+                    duration: 3000,
+                  })
+                  setIsLoginOpen(false)
+                }}
+                style={{ borderColor: `${dynamicStyles.text}20`, color: dynamicStyles.text }}
+              >
+                <MixedText text={t.logout || "Logout"} />
+              </Button>
+            )}
+          </div>
+        </SheetContent>
+      </Sheet>
+
+      {/* About Sheet */}
+      <Sheet open={isAboutOpen} onOpenChange={setIsAboutOpen}>
+        <SheetContent
+          side={language === "ar" ? "left" : "right"}
+          className="border-zinc-800"
+          style={{
+            backgroundColor: dynamicStyles.background,
+            color: dynamicStyles.text,
+            borderColor: `${dynamicStyles.text}20`,
+          }}
+        >
+          <SheetHeader>
+            <SheetTitle style={{ color: dynamicStyles.text }}>
+              <MixedText text={t.about} />
+            </SheetTitle>
+          </SheetHeader>
+          <div className="mt-6">
+            <div className="flex flex-col items-center mb-6">
+              <h1 className="text-xl font-bold bg-gradient-to-r from-cyan-400 to-purple-500 text-transparent bg-clip-text mb-4">
+                <MixedText text={t.appName} />
+              </h1>
+              <img src="/logo.png" alt="DAG Code Logo" className="h-16 mb-4" />
+            </div>
+
+            <p className="mb-4" style={{ color: dynamicStyles.text }}>
+              <MixedText text={t.aboutDesc} />
+            </p>
+
+            <p className="mb-4" style={{ color: dynamicStyles.text }}>
+              <MixedText text={t.developer} />
+            </p>
+
+            <div className="flex justify-center gap-4 mt-6">
+              <a
+                href="https://instagram.com/jwx55"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="flex items-center gap-2 hover:text-cyan-300 transition-colors"
+                style={{ color: dynamicStyles.primary }}
+              >
+                <Instagram className="h-5 w-5" />
+                Instagram
+              </a>
+              <a
+                href="https://github.com/jwx55"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="flex items-center gap-2 hover:text-purple-300 transition-colors"
+                style={{ color: dynamicStyles.secondary }}
+              >
+                <Github className="h-5 w-5" />
+                GitHub
+              </a>
+            </div>
+          </div>
+        </SheetContent>
+      </Sheet>
+
+      {/* Usage Instructions Sheet */}
+      <Sheet open={isInstructionsOpen} onOpenChange={setIsInstructionsOpen}>
+        <SheetContent
+          side={language === "ar" ? "left" : "right"}
+          className="border-zinc-800 overflow-y-auto"
+          style={{
+            backgroundColor: dynamicStyles.background,
+            color: dynamicStyles.text,
+            borderColor: `${dynamicStyles.text}20`,
+          }}
+        >
+          <SheetHeader>
+            <SheetTitle style={{ color: dynamicStyles.text }}>
+              <MixedText text={t.howToUse} />
+            </SheetTitle>
+          </SheetHeader>
+          <div className="space-y-4 mt-6">
+            <div>
+              <h3 className="font-bold mb-1" style={{ color: dynamicStyles.primary }}>
+                <MixedText text={t.step1Title} />
+              </h3>
+              <p style={{ color: dynamicStyles.text }}>
+                <MixedText text={t.step1Desc} />
+              </p>
+            </div>
+            <div>
+              <h3 className="font-bold mb-1" style={{ color: dynamicStyles.secondary }}>
+                <MixedText text={t.step2Title} />
+              </h3>
+              <p style={{ color: dynamicStyles.text }}>
+                <MixedText text={t.step2Desc} />
+              </p>
+            </div>
+            <div>
+              <h3 className="font-bold mb-1" style={{ color: dynamicStyles.primary }}>
+                <MixedText text={t.step3Title} />
+              </h3>
+              <p style={{ color: dynamicStyles.text }}>
+                <MixedText text={t.step3Desc} />
+              </p>
+            </div>
+            <div>
+              <h3 className="font-bold mb-1" style={{ color: dynamicStyles.secondary }}>
+                <MixedText text={t.step4Title} />
+              </h3>
+              <p style={{ color: dynamicStyles.text }}>
+                <MixedText text={t.step4Desc} />
+              </p>
+            </div>
+            <div>
+              <h3 className="font-bold mb-1" style={{ color: dynamicStyles.primary }}>
+                <MixedText text={t.step5Title} />
+              </h3>
+              <p style={{ color: dynamicStyles.text }}>
+                <MixedText text={t.step5Desc} />
+              </p>
+            </div>
+            <div>
+              <h3 className="font-bold mb-1" style={{ color: dynamicStyles.secondary }}>
+                <MixedText text={t.step6Title} />
+              </h3>
+              <p style={{ color: dynamicStyles.text }}>
+                <MixedText text={t.step6Desc} />
+              </p>
+            </div>
+            <div>
+              <h3 className="font-bold mb-1" style={{ color: dynamicStyles.primary }}>
+                <MixedText text={t.step7Title} />
+              </h3>
+              <p style={{ color: dynamicStyles.text }}>
+                <MixedText text={t.step7Desc} />
+              </p>
+            </div>
+            <div>
+              <h3 className="font-bold mb-1" style={{ color: dynamicStyles.secondary }}>
+                <MixedText text={t.step8Title} />
+              </h3>
+              <p style={{ color: dynamicStyles.text }}>
+                <MixedText text={t.step8Desc} />
+              </p>
+            </div>
+            <div>
+              <h3 className="font-bold mb-1" style={{ color: dynamicStyles.primary }}>
+                <MixedText text={t.step9Title} />
+              </h3>
+              <p style={{ color: dynamicStyles.text }}>
+                <MixedText text={t.step9Desc} />
+              </p>
+            </div>
+          </div>
+        </SheetContent>
+      </Sheet>
+    </main>
+  )
+}
