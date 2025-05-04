@@ -92,6 +92,25 @@ textarea::-webkit-scrollbar-thumb:hover {
   text-align: right;
 }
 
+/* Add these rules to improve bidirectional text handling */
+[dir="rtl"] .mixed-text {
+  text-align: right;
+}
+
+[dir="ltr"] .mixed-text {
+  text-align: left;
+}
+
+.bidi-isolate {
+  unicode-bidi: isolate;
+}
+
+.latin-text {
+  direction: ltr;
+  unicode-bidi: embed;
+  display: inline-block;
+}
+
 /* Fix iframe rendering */
 iframe {
   background-color: white;
@@ -127,4 +146,121 @@ iframe {
   height: 16px;
   margin-left: 6px;
   opacity: 0.7;
+}
+
+/* Responsive layout for larger screens */
+@media (min-width: 768px) {
+  main {
+    max-width: 90% !important;
+    width: 1200px;
+  }
+
+  .code-editors-container {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 1rem;
+  }
+}
+
+@media (min-width: 1024px) {
+  main {
+    max-width: 85% !important;
+  }
+
+  .code-editors-container {
+    grid-template-columns: repeat(3, 1fr);
+  }
+}
+
+/* Fix for mixed language text direction */
+.mixed-text {
+  unicode-bidi: isolate;
+}
+
+.mixed-text span[lang="en"] {
+  direction: ltr;
+  unicode-bidi: embed;
+  display: inline-block;
+}
+
+.mixed-text span[lang="ar"] {
+  direction: rtl;
+  unicode-bidi: embed;
+  display: inline-block;
+}
+
+/* Gradient themes */
+.theme-gradient-default {
+  background: linear-gradient(135deg, #3b82f6, #6366f1);
+}
+
+.theme-gradient-dark {
+  background: linear-gradient(135deg, #6366f1, #8b5cf6);
+}
+
+.theme-gradient-light {
+  background: linear-gradient(135deg, #3b82f6, #93c5fd);
+}
+
+.theme-gradient-blue {
+  background: linear-gradient(135deg, #0ea5e9, #3b82f6);
+}
+
+.theme-gradient-purple {
+  background: linear-gradient(135deg, #a855f7, #d946ef);
+}
+
+.theme-gradient-green {
+  background: linear-gradient(135deg, #10b981, #059669);
+}
+
+/* Theme preview cards */
+.theme-preview-card {
+  border-radius: 0.5rem;
+  height: 80px;
+  transition: all 0.2s ease;
+  position: relative;
+  overflow: hidden;
+}
+
+.theme-preview-card::after {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: linear-gradient(to bottom, transparent 0%, rgba(0, 0, 0, 0.3) 100%);
+  pointer-events: none;
+}
+
+.theme-preview-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+}
+
+/* Fix for download on mobile */
+.download-button {
+  -webkit-appearance: none;
+  -moz-appearance: none;
+  appearance: none;
+}
+
+/* Improve scrollbar appearance on all devices */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: rgba(0, 0, 0, 0.1);
+}
+
+::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.2);
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: rgba(255, 255, 255, 0.3);
 }

@@ -16,7 +16,6 @@ import {
   Eye,
   Copy,
   Save,
-  Trash,
   FileUp,
   Wand2,
   Menu,
@@ -28,19 +27,15 @@ import {
   Maximize,
   Minimize,
   Settings,
-  Github,
-  Instagram,
   Info,
-  Pencil,
   X,
 } from "lucide-react"
 import { toast } from "@/components/ui/use-toast"
-import { Toaster } from "@/components/ui/toaster"
 import { Label } from "@/components/ui/label"
 import { Input } from "@/components/ui/input"
 import { Card, CardContent } from "@/components/ui/card"
 import { Sheet, SheetContent, SheetDescription, SheetHeader, SheetTitle, SheetTrigger } from "@/components/ui/sheet"
-import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group"
+import { useMediaQuery } from "@/hooks/use-media-query"
 
 // Translations
 const translations = {
@@ -182,6 +177,11 @@ const translations = {
     profileUpdated: "Profile updated",
     chooseAvatar: "Choose Avatar",
     closeAvatarSelector: "Close",
+    gradientColor: "Gradient",
+    sunsetTheme: "Sunset",
+    oceanTheme: "Ocean",
+    forestTheme: "Forest",
+    midnightTheme: "Midnight",
   },
   ar: {
     // General
@@ -320,6 +320,11 @@ const translations = {
     profileUpdated: "تم تحديث الملف الشخصي",
     chooseAvatar: "اختر صورة شخصية",
     closeAvatarSelector: "إغلاق",
+    gradientColor: "تدرج",
+    sunsetTheme: "غروب الشمس",
+    oceanTheme: "محيط",
+    forestTheme: "غابة",
+    midnightTheme: "منتصف الليل",
   },
 }
 
@@ -752,41 +757,107 @@ const THEMES = {
     secondary: "#6366f1",
     background: "#18181b",
     text: "#f4f4f5",
+    gradient: "linear-gradient(to right, #3b82f6, #6366f1)",
   },
   dark: {
     primary: "#6366f1",
     secondary: "#8b5cf6",
     background: "#09090b",
     text: "#f4f4f5",
+    gradient: "linear-gradient(to right, #6366f1, #8b5cf6)",
   },
   light: {
     primary: "#3b82f6",
     secondary: "#6366f1",
     background: "#f4f4f5",
     text: "#18181b",
+    gradient: "linear-gradient(to right, #3b82f6, #6366f1)",
   },
   blue: {
     primary: "#0ea5e9",
     secondary: "#3b82f6",
     background: "#0f172a",
     text: "#f8fafc",
+    gradient: "linear-gradient(to right, #0ea5e9, #3b82f6)",
   },
   purple: {
     primary: "#a855f7",
     secondary: "#d946ef",
     background: "#1e1b4b",
     text: "#f5f3ff",
+    gradient: "linear-gradient(to right, #a855f7, #d946ef)",
   },
   green: {
     primary: "#10b981",
     secondary: "#059669",
     background: "#064e3b",
     text: "#ecfdf5",
+    gradient: "linear-gradient(to right, #10b981, #059669)",
   },
+  sunset: {
+    primary: "#f97316",
+    secondary: "#ef4444",
+    background: "#27272a",
+    text: "#fafafa",
+    gradient: "linear-gradient(to right, #f97316, #ef4444)",
+  },
+  ocean: {
+    primary: "#06b6d4",
+    secondary: "#0284c7",
+    background: "#0c4a6e",
+    text: "#e0f2fe",
+    gradient: "linear-gradient(to right, #06b6d4, #0284c7)",
+  },
+  forest: {
+    primary: "#22c55e",
+    secondary: "#16a34a",
+    background: "#14532d",
+    text: "#dcfce7",
+    gradient: "linear-gradient(to right, #22c55e, #16a34a)",
+  },
+  midnight: {
+    primary: "#4f46e5",
+    secondary: "#7c3aed",
+    background: "#020617",
+    text: "#e0e7ff",
+    gradient: "linear-gradient(to right, #4f46e5, #7c3aed)",
+  },
+}
+
+// Create a helper component for mixed text
+const MixedText = ({ text, className = "" }: { text: string; className?: string }) => {
+  // Split text by spaces
+  const words = text.split(" ")
+
+  return (
+    <span className={`mixed-text ${className}`}>
+      {words.map((word, index) => {
+        // Check if word contains only Latin characters
+        const isLatin = /^[A-Za-z0-9\-_]+$/.test(word)
+
+        // If it's a Latin word, wrap it in a span with appropriate direction
+        if (isLatin) {
+          return (
+            <span key={index} className="latin-text">
+              {word}{" "}
+            </span>
+          )
+        }
+
+        // Otherwise return the word as is
+        return (
+          <span key={index} className="bidi-isolate">
+            {word}{" "}
+          </span>
+        )
+      })}
+    </span>
+  )
 }
 
 export default function Home() {
   // State variables
+  const isMobile = useMediaQuery("(max-width: 768px)")
   const [combinedCode, setCombinedCode] = useState("")
   const [htmlCode, setHtmlCode] = useState("")
   const [cssCode, setCssCode] = useState("")
@@ -832,6 +903,7 @@ export default function Home() {
     secondary: THEMES.default.secondary,
     background: THEMES.default.background,
     text: THEMES.default.text,
+    gradient: THEMES.default.gradient,
   })
   const [currentTheme, setCurrentTheme] = useState(THEMES.default)
 
@@ -1070,22 +1142,39 @@ export default function Home() {
     try {
       // Create a Blob with the code content
       const blob = new Blob([codeMap[type]], { type: "text/plain" })
-
-      // Create a temporary anchor element
-      const a = document.createElement("a")
-      a.href = URL.createObjectURL(blob)
-      a.download = fileMap[type]
-      a.style.display = "none"
-
-      // Append to body, click, and remove
-      document.body.appendChild(a)
-      a.click()
-
-      // Clean up
-      setTimeout(() => {
-        document.body.removeChild(a)
-        URL.revokeObjectURL(a.href)
-      }, 100)
+    
+      // For mobile devices, use a different approach
+      if (isMobile) {
+        // Create a temporary URL
+        const url = URL.createObjectURL(blob)
+        
+        // Create a hidden link and trigger it programmatically
+        const link = document.createElement("a")
+        link.href = url
+        link.download = fileMap[type]
+        document.body.appendChild(link)
+        link.click()
+        
+        // Clean up
+        setTimeout(() => {
+          document.body.removeChild(link)
+          URL.revokeObjectURL(url)
+        }, 100)
+      } else {
+        // For desktop, use the standard approach
+        const a = document.createElement("a")
+        a.href = URL.createObjectURL(blob)
+        a.download = fileMap[type]
+        a.style.display = "none"
+        document.body.appendChild(a)
+        a.click()
+        
+        // Clean up
+        setTimeout(() => {
+          document.body.removeChild(a)
+          URL.revokeObjectURL(a.href)
+        }, 100)
+      }
 
       toast({
         title: t.successDownload,
@@ -1126,22 +1215,39 @@ ${jsCode}
 
       // Create a Blob with the HTML content
       const blob = new Blob([fullHtml], { type: "text/html" })
-
-      // Create a temporary anchor element
-      const a = document.createElement("a")
-      a.href = URL.createObjectURL(blob)
-      a.download = `${projectName}.html`
-      a.style.display = "none"
-
-      // Append to body, click, and remove
-      document.body.appendChild(a)
-      a.click()
-
-      // Clean up
-      setTimeout(() => {
-        document.body.removeChild(a)
-        URL.revokeObjectURL(a.href)
-      }, 100)
+    
+      // For mobile devices, use a different approach
+      if (isMobile) {
+        // Create a temporary URL
+        const url = URL.createObjectURL(blob)
+        
+        // Create a hidden link and trigger it programmatically
+        const link = document.createElement("a")
+        link.href = url
+        link.download = `${projectName}.html`
+        document.body.appendChild(link)
+        link.click()
+        
+        // Clean up
+        setTimeout(() => {
+          document.body.removeChild(link)
+          URL.revokeObjectURL(url)
+        }, 100)
+      } else {
+        // For desktop, use the standard approach
+        const a = document.createElement("a")
+        a.href = URL.createObjectURL(blob)
+        a.download = `${projectName}.html`
+        a.style.display = "none"
+        document.body.appendChild(a)
+        a.click()
+        
+        // Clean up
+        setTimeout(() => {
+          document.body.removeChild(a)
+          URL.revokeObjectURL(a.href)
+        }, 100)
+      }
 
       toast({
         title: t.successDownload,
@@ -1420,15 +1526,18 @@ ${jsCode}
     secondary: currentTheme.secondary,
     background: currentTheme.background,
     text: currentTheme.text,
+    gradient: currentTheme.gradient,
   }
 
   return (
     <main
-      className={`min-h-screen flex flex-col max-w-[500px] mx-auto shadow-xl ${dir}`}
+      className={`min-h-screen flex flex-col mx-auto shadow-xl ${dir}`}
       dir={dir}
       style={{
         backgroundColor: dynamicStyles.background,
         color: dynamicStyles.text,
+        maxWidth: isMobile ? "500px" : "100%",
+        width: "100%",
       }}
     >
       {/* Welcome Screen */}
@@ -1549,7 +1658,9 @@ ${jsCode}
               >
                 <SheetHeader>
                   <SheetTitle style={{ color: dynamicStyles.text }}>{t.appName}</SheetTitle>
-                  <SheetDescription style={{ color: `${dynamicStyles.text}80` }}>{t.appDescription}</SheetDescription>
+                  <SheetDescription style={{ color: `${dynamicStyles.text}80` }}>
+                    <MixedText text={t.appDescription} />
+                  </SheetDescription>
                 </SheetHeader>
                 <div className="mt-6 space-y-4">
                   <Button
@@ -1562,7 +1673,7 @@ ${jsCode}
                     style={{ borderColor: `${dynamicStyles.text}20`, color: dynamicStyles.text }}
                   >
                     <HelpCircle className="mr-2 h-4 w-4" />
-                    {t.instructions}
+                    <MixedText text={t.instructions} />
                   </Button>
 
                   <Button
@@ -1575,7 +1686,7 @@ ${jsCode}
                     style={{ borderColor: `${dynamicStyles.text}20`, color: dynamicStyles.text }}
                   >
                     <FolderOpen className="mr-2 h-4 w-4" />
-                    {t.savedProjects}
+                    <MixedText text={t.savedProjects} />
                   </Button>
 
                   <Button
@@ -1588,7 +1699,7 @@ ${jsCode}
                     style={{ borderColor: `${dynamicStyles.text}20`, color: dynamicStyles.text }}
                   >
                     <Settings className="mr-2 h-4 w-4" />
-                    {t.customize}
+                    <MixedText text={t.customize} />
                   </Button>
 
                   <Button
@@ -1601,7 +1712,7 @@ ${jsCode}
                     style={{ borderColor: `${dynamicStyles.text}20`, color: dynamicStyles.text }}
                   >
                     <Info className="mr-2 h-4 w-4" />
-                    {t.about}
+                    <MixedText text={t.about} />
                   </Button>
 
                   <Button
@@ -1621,7 +1732,7 @@ ${jsCode}
                     style={{ borderColor: `${dynamicStyles.text}20`, color: dynamicStyles.text }}
                   >
                     <Maximize className="mr-2 h-4 w-4" />
-                    {t.focusMode}
+                    <MixedText text={t.focusMode} />
                   </Button>
                 </div>
               </SheetContent>
@@ -1641,7 +1752,7 @@ ${jsCode}
               style={{ color: dynamicStyles.text }}
             >
               <Minimize className="mr-2 h-4 w-4" />
-              {t.exitFocusMode}
+              <MixedText text={t.exitFocusMode} />
             </Button>
           </div>
         )}
@@ -1652,7 +1763,7 @@ ${jsCode}
               <div className="flex flex-col gap-2">
                 <div className="flex justify-between items-center">
                   <label htmlFor="combined-code" className="text-sm font-medium" style={{ color: dynamicStyles.text }}>
-                    {t.combinedCode}
+                    <MixedText text={t.combinedCode} />
                   </label>
                   <div className="flex gap-2">
                     <Sheet>
@@ -1664,7 +1775,7 @@ ${jsCode}
                           style={{ borderColor: `${dynamicStyles.text}20`, color: dynamicStyles.text }}
                         >
                           <FileUp className="h-3 w-3 mr-1" />
-                          {t.uploadFile}
+                          <MixedText text={t.uploadFile} />
                         </Button>
                       </SheetTrigger>
                       <SheetContent
@@ -1677,9 +1788,11 @@ ${jsCode}
                         }}
                       >
                         <SheetHeader>
-                          <SheetTitle style={{ color: dynamicStyles.text }}>{t.uploadFile}</SheetTitle>
+                          <SheetTitle style={{ color: dynamicStyles.text }}>
+                            <MixedText text={t.uploadFile} />
+                          </SheetTitle>
                           <SheetDescription style={{ color: `${dynamicStyles.text}80` }}>
-                            {t.uploadFileDesc}
+                            <MixedText text={t.uploadFileDesc} />
                           </SheetDescription>
                         </SheetHeader>
                         <div className="grid gap-4 py-4 mt-4">
@@ -1704,7 +1817,7 @@ ${jsCode}
                           style={{ borderColor: `${dynamicStyles.text}20`, color: dynamicStyles.text }}
                         >
                           <Code className="h-3 w-3 mr-1" />
-                          {t.examples}
+                          <MixedText text={t.examples} />
                         </Button>
                       </SheetTrigger>
                       <SheetContent
@@ -1717,9 +1830,11 @@ ${jsCode}
                         }}
                       >
                         <SheetHeader>
-                          <SheetTitle style={{ color: dynamicStyles.text }}>{t.examples}</SheetTitle>
+                          <SheetTitle style={{ color: dynamicStyles.text }}>
+                            <MixedText text={t.examples} />
+                          </SheetTitle>
                           <SheetDescription style={{ color: `${dynamicStyles.text}80` }}>
-                            {t.examplesDesc}
+                            <MixedText text={t.examplesDesc} />
                           </SheetDescription>
                         </SheetHeader>
                         <div className="grid grid-cols-1 gap-4 py-4 mt-4">
@@ -1735,11 +1850,11 @@ ${jsCode}
                               <div className="flex items-center gap-2 mb-2">
                                 <Code className="h-4 w-4" style={{ color: dynamicStyles.primary }} />
                                 <h3 className="font-medium" style={{ color: dynamicStyles.text }}>
-                                  {t.basicExample}
+                                  <MixedText text={t.basicExample} />
                                 </h3>
                               </div>
                               <p className="text-sm" style={{ color: `${dynamicStyles.text}80` }}>
-                                {t.basicExampleDesc}
+                                <MixedText text={t.basicExampleDesc} />
                               </p>
                             </CardContent>
                           </Card>
@@ -1756,11 +1871,11 @@ ${jsCode}
                               <div className="flex items-center gap-2 mb-2">
                                 <Palette className="h-4 w-4" style={{ color: dynamicStyles.secondary }} />
                                 <h3 className="font-medium" style={{ color: dynamicStyles.text }}>
-                                  {t.animationExample}
+                                  <MixedText text={t.animationExample} />
                                 </h3>
                               </div>
                               <p className="text-sm" style={{ color: `${dynamicStyles.text}80` }}>
-                                {t.animationExampleDesc}
+                                <MixedText text={t.animationExampleDesc} />
                               </p>
                             </CardContent>
                           </Card>
@@ -1777,11 +1892,11 @@ ${jsCode}
                               <div className="flex items-center gap-2 mb-2">
                                 <Code className="h-4 w-4" style={{ color: dynamicStyles.primary }} />
                                 <h3 className="font-medium" style={{ color: dynamicStyles.text }}>
-                                  {t.responsiveExample}
+                                  <MixedText text={t.responsiveExample} />
                                 </h3>
                               </div>
                               <p className="text-sm" style={{ color: `${dynamicStyles.text}80` }}>
-                                {t.responsiveExampleDesc}
+                                <MixedText text={t.responsiveExampleDesc} />
                               </p>
                             </CardContent>
                           </Card>
@@ -1798,11 +1913,11 @@ ${jsCode}
                               <div className="flex items-center gap-2 mb-2">
                                 <Palette className="h-4 w-4" style={{ color: dynamicStyles.secondary }} />
                                 <h3 className="font-medium" style={{ color: dynamicStyles.text }}>
-                                  {t.darkModeExample}
+                                  <MixedText text={t.darkModeExample} />
                                 </h3>
                               </div>
                               <p className="text-sm" style={{ color: `${dynamicStyles.text}80` }}>
-                                {t.darkModeExampleDesc}
+                                <MixedText text={t.darkModeExampleDesc} />
                               </p>
                             </CardContent>
                           </Card>
@@ -1819,11 +1934,11 @@ ${jsCode}
                               <div className="flex items-center gap-2 mb-2">
                                 <Grid className="h-4 w-4" style={{ color: dynamicStyles.primary }} />
                                 <h3 className="font-medium" style={{ color: dynamicStyles.text }}>
-                                  {t.gridLayoutExample}
+                                  <MixedText text={t.gridLayoutExample} />
                                 </h3>
                               </div>
                               <p className="text-sm" style={{ color: `${dynamicStyles.text}80` }}>
-                                {t.gridLayoutExampleDesc}
+                                <MixedText text={t.gridLayoutExampleDesc} />
                               </p>
                             </CardContent>
                           </Card>
@@ -1837,7 +1952,7 @@ ${jsCode}
                   value={combinedCode}
                   onChange={(e) => setCombinedCode(e.target.value)}
                   placeholder={t.placeholderText}
-                  className="min-h-[180px] font-mono text-sm"
+                  className={`min-h-[180px] font-mono text-sm ${isMobile ? "" : "min-h-[300px]"}`}
                   style={{
                     backgroundColor: `${dynamicStyles.text}10`,
                     borderColor: `${dynamicStyles.text}20`,
@@ -1851,11 +1966,11 @@ ${jsCode}
                   onClick={separateCode}
                   className="text-white font-medium px-6 py-2 rounded-md transition-all"
                   style={{
-                    background: `linear-gradient(to right, ${dynamicStyles.primary}, ${dynamicStyles.secondary})`,
+                    background: dynamicStyles.gradient,
                   }}
                 >
                   <Code className="mr-2 h-4 w-4" />
-                  {t.separateAndView}
+                  <MixedText text={t.separateAndView} />
                 </Button>
 
                 {isProcessed && (
@@ -1867,7 +1982,7 @@ ${jsCode}
                           style={{ borderColor: `${dynamicStyles.text}20`, color: dynamicStyles.text }}
                         >
                           <Save className="mr-2 h-4 w-4" />
-                          {t.saveProject}
+                          <MixedText text={t.saveProject} />
                         </Button>
                       </SheetTrigger>
                       <SheetContent
@@ -1880,9 +1995,11 @@ ${jsCode}
                         }}
                       >
                         <SheetHeader>
-                          <SheetTitle style={{ color: dynamicStyles.text }}>{t.saveProjectTitle}</SheetTitle>
+                          <SheetTitle style={{ color: dynamicStyles.text }}>
+                            <MixedText text={t.saveProjectTitle} />
+                          </SheetTitle>
                           <SheetDescription style={{ color: `${dynamicStyles.text}80` }}>
-                            {t.saveProjectDesc}
+                            <MixedText text={t.saveProjectDesc} />
                           </SheetDescription>
                         </SheetHeader>
                         <div className="grid gap-4 py-4 mt-4">
@@ -1892,7 +2009,7 @@ ${jsCode}
                               className={`${language === "ar" ? "text-right" : "text-left"}`}
                               style={{ color: dynamicStyles.text }}
                             >
-                              {t.projectName}
+                              <MixedText text={t.projectName} />
                             </Label>
                             <Input
                               id="project-name"
@@ -1914,7 +2031,7 @@ ${jsCode}
                               color: "#ffffff",
                             }}
                           >
-                            {t.save}
+                            <MixedText text={t.save} />
                           </Button>
                         </div>
                       </SheetContent>
@@ -1926,7 +2043,7 @@ ${jsCode}
                       style={{ borderColor: `${dynamicStyles.text}20`, color: dynamicStyles.text }}
                     >
                       <Download className="mr-2 h-4 w-4" />
-                      {t.downloadProject}
+                      <MixedText text={t.downloadProject} />
                     </Button>
                   </>
                 )}
@@ -1950,7 +2067,7 @@ ${jsCode}
                   className="data-[state=active]:text-white"
                   style={{
                     color: dynamicStyles.text,
-                    backgroundColor: activeTab === "html" ? dynamicStyles.primary : "transparent",
+                    background: activeTab === "html" ? dynamicStyles.gradient : "transparent",
                   }}
                 >
                   <FileText className="mr-2 h-4 w-4" />
@@ -1961,7 +2078,7 @@ ${jsCode}
                   className="data-[state=active]:text-white"
                   style={{
                     color: dynamicStyles.text,
-                    backgroundColor: activeTab === "css" ? dynamicStyles.secondary : "transparent",
+                    background: activeTab === "css" ? dynamicStyles.gradient : "transparent",
                   }}
                 >
                   <FileCode className="mr-2 h-4 w-4" />
@@ -1972,7 +2089,7 @@ ${jsCode}
                   className="data-[state=active]:text-white"
                   style={{
                     color: dynamicStyles.text,
-                    backgroundColor: activeTab === "js" ? dynamicStyles.primary : "transparent",
+                    background: activeTab === "js" ? dynamicStyles.gradient : "transparent",
                   }}
                 >
                   <Code className="mr-2 h-4 w-4" />
@@ -1983,11 +2100,11 @@ ${jsCode}
                   className="data-[state=active]:text-white"
                   style={{
                     color: dynamicStyles.text,
-                    backgroundColor: activeTab === "preview" ? dynamicStyles.secondary : "transparent",
+                    background: activeTab === "preview" ? dynamicStyles.gradient : "transparent",
                   }}
                 >
                   <Eye className="mr-2 h-4 w-4" />
-                  {t.preview}
+                  <MixedText text={t.preview} />
                 </TabsTrigger>
               </TabsList>
 
@@ -2005,7 +2122,7 @@ ${jsCode}
                   >
                     <h3 className="font-medium flex items-center" style={{ color: dynamicStyles.primary }}>
                       <FileText className="mr-2 h-4 w-4" />
-                      {t.htmlFile}
+                      <MixedText text={t.htmlFile} />
                     </h3>
                     <div className="flex gap-2">
                       <Button
@@ -2057,7 +2174,9 @@ ${jsCode}
                         setHtmlCode(e.target.value)
                         updatePreview()
                       }}
-                      className="min-h-[180px] w-full border-0 rounded-none font-mono text-sm p-4"
+                      className={`min-h-[180px] w-full border-0 rounded-none font-mono text-sm p-4 ${
+                        isMobile ? "" : "min-h-[400px]"
+                      }`}
                       style={{
                         backgroundColor: `${dynamicStyles.text}05`,
                         color: dynamicStyles.text,
@@ -2081,7 +2200,7 @@ ${jsCode}
                   >
                     <h3 className="font-medium flex items-center" style={{ color: dynamicStyles.secondary }}>
                       <FileCode className="mr-2 h-4 w-4" />
-                      {t.cssFile}
+                      <MixedText text={t.cssFile} />
                     </h3>
                     <div className="flex gap-2">
                       <Button
@@ -2133,7 +2252,9 @@ ${jsCode}
                         setCssCode(e.target.value)
                         updatePreview()
                       }}
-                      className="min-h-[180px] w-full border-0 rounded-none font-mono text-sm p-4"
+                      className={`min-h-[180px] w-full border-0 rounded-none font-mono text-sm p-4 ${
+                        isMobile ? "" : "min-h-[400px]"
+                      }`}
                       style={{
                         backgroundColor: `${dynamicStyles.text}05`,
                         color: dynamicStyles.text,
@@ -2157,7 +2278,7 @@ ${jsCode}
                   >
                     <h3 className="font-medium flex items-center" style={{ color: dynamicStyles.primary }}>
                       <Code className="mr-2 h-4 w-4" />
-                      {t.jsFile}
+                      <MixedText text={t.jsFile} />
                     </h3>
                     <div className="flex gap-2">
                       <Button
@@ -2209,7 +2330,9 @@ ${jsCode}
                         setJsCode(e.target.value)
                         updatePreview()
                       }}
-                      className="min-h-[180px] w-full border-0 rounded-none font-mono text-sm p-4"
+                      className={`min-h-[180px] w-full border-0 rounded-none font-mono text-sm p-4 ${
+                        isMobile ? "" : "min-h-[400px]"
+                      }`}
                       style={{
                         backgroundColor: `${dynamicStyles.text}05`,
                         color: dynamicStyles.text,
@@ -2230,10 +2353,10 @@ ${jsCode}
                   <div className="p-2 border-b" style={{ borderColor: `${dynamicStyles.text}20` }}>
                     <h3 className="font-medium flex items-center" style={{ color: dynamicStyles.secondary }}>
                       <Eye className="mr-2 h-4 w-4" />
-                      {t.preview}
+                      <MixedText text={t.preview} />
                     </h3>
                   </div>
-                  <div className="w-full bg-white" style={{ height: "350px" }}>
+                  <div className={`w-full bg-white ${isMobile ? "h-[350px]" : "h-[500px]"}`}>
                     <iframe
                       key={previewKey}
                       ref={previewIframeRef}
@@ -2249,494 +2372,39 @@ ${jsCode}
         )}
       </div>
 
-      {/* Login Sheet */}
-      <Sheet open={isLoginOpen} onOpenChange={setIsLoginOpen}>
-        <SheetContent
-          side={language === "ar" ? "left" : "right"}
-          className="border-zinc-800"
-          style={{
-            backgroundColor: dynamicStyles.background,
-            color: dynamicStyles.text,
-            borderColor: `${dynamicStyles.text}20`,
-          }}
-        >
-          <SheetHeader>
-            <SheetTitle style={{ color: dynamicStyles.text }}>
-              {user.loggedIn ? t.editProfile || "Edit Profile" : t.login || "Login"}
-            </SheetTitle>
-          </SheetHeader>
-          <div className="space-y-4 mt-6">
-            <div className="flex flex-col items-center mb-6">
-              <div className="relative mb-4">
-                <img
-                  src={user.image || "/placeholder.svg?height=80&width=80"}
-                  alt={user.name}
-                  className="w-20 h-20 rounded-full object-cover"
-                />
-                <Button
-                  variant="outline"
-                  size="icon"
-                  className="absolute bottom-0 right-0 h-6 w-6 rounded-full"
-                  onClick={() => setIsAvatarSelectorOpen(true)}
-                  style={{ borderColor: `${dynamicStyles.text}20`, color: dynamicStyles.text }}
-                >
-                  <Pencil className="h-3 w-3" />
-                </Button>
-              </div>
-            </div>
-
-            <div className="space-y-2">
-              <Label htmlFor="username" style={{ color: dynamicStyles.text }}>
-                {t.username || "Username"}
-              </Label>
-              <Input
-                id="username"
-                value={user.name}
-                onChange={(e) => updateUser({ name: e.target.value })}
-                style={{
-                  backgroundColor: `${dynamicStyles.text}10`,
-                  borderColor: `${dynamicStyles.text}20`,
-                  color: dynamicStyles.text,
-                }}
-              />
-            </div>
-
+      {!isMobile && isProcessed && activeTab !== "preview" && (
+        <div className="fixed right-4 top-20 w-[40%] h-[500px] rounded-md overflow-hidden shadow-xl border border-zinc-700 z-10 hidden lg:block">
+          <div className="p-2 border-b bg-zinc-800 flex justify-between items-center">
+            <h3 className="font-medium flex items-center text-white">
+              <Eye className="mr-2 h-4 w-4" />
+              <MixedText text={t.preview} />
+            </h3>
             <Button
-              className="w-full mt-4"
-              onClick={() => {
-                if (!user.loggedIn) {
-                  updateUser({ loggedIn: true })
-                  toast({
-                    title: t.loginSuccess || "Login successful",
-                    duration: 3000,
-                  })
-                } else {
-                  toast({
-                    title: t.profileUpdated || "Profile updated",
-                    duration: 3000,
-                  })
-                }
-                setIsLoginOpen(false)
-              }}
-              style={{
-                backgroundColor: dynamicStyles.primary,
-                color: "#ffffff",
-              }}
+              variant="ghost"
+              size="icon"
+              onClick={() => setActiveTab("preview")}
+              className="h-6 w-6 text-zinc-400 hover:text-white"
             >
-              {user.loggedIn ? t.saveChanges || "Save Changes" : t.login || "Login"}
+              <Maximize className="h-3 w-3" />
             </Button>
-
-            {user.loggedIn && (
-              <Button
-                variant="outline"
-                className="w-full"
-                onClick={() => {
-                  updateUser({ loggedIn: false, name: "Guest" })
-                  toast({
-                    title: t.logoutSuccess || "Logged out successfully",
-                    duration: 3000,
-                  })
-                  setIsLoginOpen(false)
-                }}
-                style={{ borderColor: `${dynamicStyles.text}20`, color: dynamicStyles.text }}
-              >
-                {t.logout || "Logout"}
-              </Button>
-            )}
           </div>
-        </SheetContent>
-      </Sheet>
-
-      {/* About Sheet */}
-      <Sheet open={isAboutOpen} onOpenChange={setIsAboutOpen}>
-        <SheetContent
-          side={language === "ar" ? "left" : "right"}
-          className="border-zinc-800"
-          style={{
-            backgroundColor: dynamicStyles.background,
-            color: dynamicStyles.text,
-            borderColor: `${dynamicStyles.text}20`,
-          }}
-        >
-          <SheetHeader>
-            <SheetTitle style={{ color: dynamicStyles.text }}>{t.about}</SheetTitle>
-          </SheetHeader>
-          <div className="mt-6">
-            <div className="flex flex-col items-center mb-6">
-              <h1 className="text-xl font-bold bg-gradient-to-r from-cyan-400 to-purple-500 text-transparent bg-clip-text mb-4">
-                {t.appName}
-              </h1>
-              <img src="/logo.png" alt="DAG Code Logo" className="h-16 mb-4" />
-            </div>
-
-            <p className="mb-4" style={{ color: dynamicStyles.text }}>
-              {t.aboutDesc}
-            </p>
-
-            <p className="mb-4" style={{ color: dynamicStyles.text }}>
-              {t.developer}
-            </p>
-
-            <div className="flex justify-center gap-4 mt-6">
-              <a
-                href="https://instagram.com/jwx55"
-                target="_blank"
-                rel="noopener noreferrer"
-                className="flex items-center gap-2 hover:text-cyan-300 transition-colors"
-                style={{ color: dynamicStyles.primary }}
-              >
-                <Instagram className="h-5 w-5" />
-                Instagram
-              </a>
-              <a
-                href="https://github.com/jwx55"
-                target="_blank"
-                rel="noopener noreferrer"
-                className="flex items-center gap-2 hover:text-purple-300 transition-colors"
-                style={{ color: dynamicStyles.secondary }}
-              >
-                <Github className="h-5 w-5" />
-                GitHub
-              </a>
-            </div>
-          </div>
-        </SheetContent>
-      </Sheet>
-
-      {/* Usage Instructions Sheet */}
-      <Sheet open={isInstructionsOpen} onOpenChange={setIsInstructionsOpen}>
-        <SheetContent
-          side={language === "ar" ? "left" : "right"}
-          className="border-zinc-800 overflow-y-auto"
-          style={{
-            backgroundColor: dynamicStyles.background,
-            color: dynamicStyles.text,
-            borderColor: `${dynamicStyles.text}20`,
-          }}
-        >
-          <SheetHeader>
-            <SheetTitle style={{ color: dynamicStyles.text }}>{t.howToUse}</SheetTitle>
-          </SheetHeader>
-          <div className="space-y-4 mt-6">
-            <div>
-              <h3 className="font-bold mb-1" style={{ color: dynamicStyles.primary }}>
-                {t.step1Title}
-              </h3>
-              <p style={{ color: dynamicStyles.text }}>{t.step1Desc}</p>
-            </div>
-            <div>
-              <h3 className="font-bold mb-1" style={{ color: dynamicStyles.secondary }}>
-                {t.step2Title}
-              </h3>
-              <p style={{ color: dynamicStyles.text }}>{t.step2Desc}</p>
-            </div>
-            <div>
-              <h3 className="font-bold mb-1" style={{ color: dynamicStyles.primary }}>
-                {t.step3Title}
-              </h3>
-              <p style={{ color: dynamicStyles.text }}>{t.step3Desc}</p>
-            </div>
-            <div>
-              <h3 className="font-bold mb-1" style={{ color: dynamicStyles.secondary }}>
-                {t.step4Title}
-              </h3>
-              <p style={{ color: dynamicStyles.text }}>{t.step4Desc}</p>
-            </div>
-            <div>
-              <h3 className="font-bold mb-1" style={{ color: dynamicStyles.primary }}>
-                {t.step5Title}
-              </h3>
-              <p style={{ color: dynamicStyles.text }}>{t.step5Desc}</p>
-            </div>
-            <div>
-              <h3 className="font-bold mb-1" style={{ color: dynamicStyles.secondary }}>
-                {t.step6Title}
-              </h3>
-              <p style={{ color: dynamicStyles.text }}>{t.step6Desc}</p>
-            </div>
-            <div>
-              <h3 className="font-bold mb-1" style={{ color: dynamicStyles.primary }}>
-                {t.step7Title}
-              </h3>
-              <p style={{ color: dynamicStyles.text }}>{t.step7Desc}</p>
-            </div>
-            <div>
-              <h3 className="font-bold mb-1" style={{ color: dynamicStyles.secondary }}>
-                {t.step8Title}
-              </h3>
-              <p style={{ color: dynamicStyles.text }}>{t.step8Desc}</p>
-            </div>
-            <div>
-              <h3 className="font-bold mb-1" style={{ color: dynamicStyles.primary }}>
-                {t.step9Title}
-              </h3>
-              <p style={{ color: dynamicStyles.text }}>{t.step9Desc}</p>
-            </div>
-          </div>
-        </SheetContent>
-      </Sheet>
-
-      {/* Saved Projects Sheet */}
-      <Sheet open={isSavedProjectsOpen} onOpenChange={setIsSavedProjectsOpen}>
-        <SheetContent
-          side={language === "ar" ? "left" : "right"}
-          className="border-zinc-800 overflow-y-auto"
-          style={{
-            backgroundColor: dynamicStyles.background,
-            color: dynamicStyles.text,
-            borderColor: `${dynamicStyles.text}20`,
-          }}
-        >
-          <SheetHeader>
-            <SheetTitle style={{ color: dynamicStyles.text }}>{t.savedProjects}</SheetTitle>
-          </SheetHeader>
-          <div className="mt-6">
-            {Object.keys(savedProjects).length === 0 ? (
-              <p className="text-sm" style={{ color: `${dynamicStyles.text}60` }}>
-                {t.noSavedProjects}
-              </p>
-            ) : (
-              <div className="grid grid-cols-1 gap-2">
-                {Object.keys(savedProjects).map((name) => (
-                  <div
-                    key={name}
-                    className="flex justify-between items-center p-3 rounded"
-                    style={{ backgroundColor: `${dynamicStyles.text}10` }}
-                  >
-                    <span className="text-sm truncate" style={{ color: dynamicStyles.text }}>
-                      {name}
-                    </span>
-                    <div className="flex gap-1">
-                      <Button
-                        variant="ghost"
-                        size="icon"
-                        className="h-7 w-7"
-                        onClick={() => loadProject(name)}
-                        style={{ color: dynamicStyles.primary }}
-                      >
-                        <FileUp className="h-3 w-3" />
-                      </Button>
-                      <Button
-                        variant="ghost"
-                        size="icon"
-                        className="h-7 w-7"
-                        onClick={() => deleteProject(name)}
-                        style={{ color: "#ef4444" }}
-                      >
-                        <Trash className="h-3 w-3" />
-                      </Button>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            )}
-          </div>
-        </SheetContent>
-      </Sheet>
-
-      {/* Customize Sheet */}
-      <Sheet open={isCustomizeOpen} onOpenChange={setIsCustomizeOpen}>
-        <SheetContent
-          side={language === "ar" ? "left" : "right"}
-          className="border-zinc-800 overflow-y-auto"
-          style={{
-            backgroundColor: dynamicStyles.background,
-            color: dynamicStyles.text,
-            borderColor: `${dynamicStyles.text}20`,
-          }}
-        >
-          <SheetHeader>
-            <SheetTitle style={{ color: dynamicStyles.text }}>{t.customizeTitle}</SheetTitle>
-            <SheetDescription style={{ color: `${dynamicStyles.text}80` }}>{t.customizeDesc}</SheetDescription>
-          </SheetHeader>
-          <div className="space-y-6 mt-6">
-            <div>
-              <h3 className="text-lg font-medium mb-4" style={{ color: dynamicStyles.text }}>
-                {t.themes}
-              </h3>
-              <RadioGroup
-                value={selectedTheme}
-                onValueChange={(value) => {
-                  setSelectedTheme(value)
-                  if (value !== "custom") {
-                    applyTheme(value)
-                  }
-                }}
-                className="grid grid-cols-2 gap-2"
-              >
-                {Object.keys(THEMES).map((theme) => (
-                  <div
-                    key={theme}
-                    className={`flex items-center space-x-2 p-2 rounded cursor-pointer ${selectedTheme === theme ? "ring-2" : ""}`}
-                    style={{
-                      backgroundColor: THEMES[theme as keyof typeof THEMES].background,
-                      color: THEMES[theme as keyof typeof THEMES].text,
-                      borderColor: `${THEMES[theme as keyof typeof THEMES].text}20`,
-                      ringColor: selectedTheme === theme ? THEMES[theme as keyof typeof THEMES].primary : "transparent",
-                    }}
-                  >
-                    <RadioGroupItem
-                      value={theme}
-                      id={theme}
-                      style={{
-                        borderColor: THEMES[theme as keyof typeof THEMES].text,
-                        color: THEMES[theme as keyof typeof THEMES].primary,
-                      }}
-                    />
-                    <Label htmlFor={theme} style={{ color: THEMES[theme as keyof typeof THEMES].text }}>
-                      {t[`${theme}Theme` as keyof typeof t]}
-                    </Label>
-                  </div>
-                ))}
-              </RadioGroup>
-            </div>
-
-            {selectedTheme === "custom" && (
-              <div className="space-y-4">
-                <div>
-                  <Label htmlFor="primary-color" style={{ color: dynamicStyles.text }}>
-                    {t.primaryColor}
-                  </Label>
-                  <div className="flex items-center mt-2">
-                    <div className="w-8 h-8 rounded-full mr-2" style={{ backgroundColor: customColors.primary }}></div>
-                    <Input
-                      id="primary-color"
-                      type="text"
-                      value={customColors.primary}
-                      onChange={(e) => setCustomColors({ ...customColors, primary: e.target.value })}
-                      className="w-24 text-xs"
-                      style={{
-                        backgroundColor: `${dynamicStyles.text}10`,
-                        borderColor: `${dynamicStyles.text}20`,
-                        color: dynamicStyles.text,
-                      }}
-                    />
-                    <Input
-                      type="color"
-                      value={customColors.primary}
-                      onChange={(e) => setCustomColors({ ...customColors, primary: e.target.value })}
-                      className="w-10 h-8 ml-2 p-0 overflow-hidden"
-                    />
-                  </div>
-                </div>
-
-                <div>
-                  <Label htmlFor="secondary-color" style={{ color: dynamicStyles.text }}>
-                    {t.secondaryColor}
-                  </Label>
-                  <div className="flex items-center mt-2">
-                    <div
-                      className="w-8 h-8 rounded-full mr-2"
-                      style={{ backgroundColor: customColors.secondary }}
-                    ></div>
-                    <Input
-                      id="secondary-color"
-                      type="text"
-                      value={customColors.secondary}
-                      onChange={(e) => setCustomColors({ ...customColors, secondary: e.target.value })}
-                      className="w-24 text-xs"
-                      style={{
-                        backgroundColor: `${dynamicStyles.text}10`,
-                        borderColor: `${dynamicStyles.text}20`,
-                        color: dynamicStyles.text,
-                      }}
-                    />
-                    <Input
-                      type="color"
-                      value={customColors.secondary}
-                      onChange={(e) => setCustomColors({ ...customColors, secondary: e.target.value })}
-                      className="w-10 h-8 ml-2 p-0 overflow-hidden"
-                    />
-                  </div>
-                </div>
-
-                <div>
-                  <Label htmlFor="background-color" style={{ color: dynamicStyles.text }}>
-                    {t.backgroundColor}
-                  </Label>
-                  <div className="flex items-center mt-2">
-                    <div
-                      className="w-8 h-8 rounded-full mr-2"
-                      style={{ backgroundColor: customColors.background }}
-                    ></div>
-                    <Input
-                      id="background-color"
-                      type="text"
-                      value={customColors.background}
-                      onChange={(e) => setCustomColors({ ...customColors, background: e.target.value })}
-                      className="w-24 text-xs"
-                      style={{
-                        backgroundColor: `${dynamicStyles.text}10`,
-                        borderColor: `${dynamicStyles.text}20`,
-                        color: dynamicStyles.text,
-                      }}
-                    />
-                    <Input
-                      type="color"
-                      value={customColors.background}
-                      onChange={(e) => setCustomColors({ ...customColors, background: e.target.value })}
-                      className="w-10 h-8 ml-2 p-0 overflow-hidden"
-                    />
-                  </div>
-                </div>
-
-                <div>
-                  <Label htmlFor="text-color" style={{ color: dynamicStyles.text }}>
-                    {t.textColor}
-                  </Label>
-                  <div className="flex items-center mt-2">
-                    <div className="w-8 h-8 rounded-full mr-2" style={{ backgroundColor: customColors.text }}></div>
-                    <Input
-                      id="text-color"
-                      type="text"
-                      value={customColors.text}
-                      onChange={(e) => setCustomColors({ ...customColors, text: e.target.value })}
-                      className="w-24 text-xs"
-                      style={{
-                        backgroundColor: `${dynamicStyles.text}10`,
-                        borderColor: `${dynamicStyles.text}20`,
-                        color: dynamicStyles.text,
-                      }}
-                    />
-                    <Input
-                      type="color"
-                      value={customColors.text}
-                      onChange={(e) => setCustomColors({ ...customColors, text: e.target.value })}
-                      className="w-10 h-8 ml-2 p-0 overflow-hidden"
-                    />
-                  </div>
-                </div>
-
-                <div className="flex gap-2 pt-4">
-                  <Button
-                    variant="outline"
-                    onClick={() => {
-                      setCustomColors(THEMES.default)
-                    }}
-                    style={{
-                      borderColor: `${dynamicStyles.text}20`,
-                      color: dynamicStyles.text,
-                    }}
-                  >
-                    {t.resetColors}
-                  </Button>
-                  <Button
-                    onClick={() => applyTheme("custom")}
-                    style={{
-                      backgroundColor: dynamicStyles.primary,
-                      color: "#ffffff",
-                    }}
-                  >
-                    {t.applyTheme}
-                  </Button>
-                </div>
-              </div>
-            )}
-          </div>
-        </SheetContent>
-      </Sheet>
-
-      <Toaster />
-    </main>
-  )
-}
+          <div className="w-full bg-white h-full">
+            <iframe
+              key={previewKey + 1} // Use a different key to force re-render
+              title="Preview"
+              className="w-full h-full border-0"
+              sandbox="allow-scripts allow-same-origin"
+              srcDoc={`
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <style>${cssCode}</style>
+  </head>
+  <body>
+    ${htmlCode}
+    <script>${jsCode}</script>
+  </body>
+</html>
+              `}\
